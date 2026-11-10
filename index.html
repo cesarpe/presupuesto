@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full">
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Presupuesto Diario & Ahorro</title>
+    <title>Control de Presupuesto Diario</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -18,7 +18,6 @@
                             500: '#22c55e',
                             600: '#16a34a',
                             700: '#15803d',
-                            900: '#14532d',
                         }
                     }
                 }
@@ -29,423 +28,304 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.05);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        .dark ::-webkit-scrollbar-thumb {
-            background: #475569;
-        }
-    </style>
 </head>
-<body class="h-full font-sans text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-900 transition-colors duration-200 antialiased flex flex-col selection:bg-brand-500 selection:text-white">
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
 
-    <!-- Top Navigation Bar -->
-    <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 shadow-sm transition-colors">
+    <!-- Header / Navbar -->
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="bg-brand-600 text-white p-2 rounded-xl shadow-md shadow-brand-500/20">
+            <div class="flex items-center space-x-3">
+                <div class="bg-brand-500 text-white p-2 rounded-xl shadow-md">
                     <i data-lucide="wallet" class="w-6 h-6"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-lg text-slate-900 dark:text-white leading-tight">DiarioWallet</h1>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Control Presupuestario Diario</p>
+                    <h1 class="text-base sm:text-lg font-bold tracking-tight">Presupuesto Diario</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Control inteligente de gastos y ahorro</p>
                 </div>
             </div>
 
-            <!-- Header Action Buttons -->
-            <div class="flex items-center gap-2 sm:gap-3">
-                <!-- Theme Toggle Button -->
-                <button onclick="toggleDarkMode()" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-700 transition" title="Cambiar Tema">
-                    <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
-                    <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
+            <!-- Acciones Superiores & Dark Mode -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <button onclick="exportJSON()" class="flex items-center space-x-1.5 bg-brand-600 hover:bg-brand-700 text-white px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition shadow-sm" title="Exportar JSON">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span class="hidden md:inline">Exportar</span>
                 </button>
-
-                <button onclick="exportJSON()" class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-300 dark:border-slate-600 text-xs sm:text-sm font-medium rounded-lg text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition shadow-sm">
-                    <i data-lucide="download" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <span class="hidden sm:inline">Exportar JSON</span>
-                </button>
-                <label class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-300 dark:border-slate-600 text-xs sm:text-sm font-medium rounded-lg text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition shadow-sm cursor-pointer">
-                    <i data-lucide="upload" class="w-4 h-4 text-slate-500 dark:text-slate-400"></i>
-                    <span class="hidden sm:inline">Importar JSON</span>
-                    <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importJSON(event)">
+                <label class="flex items-center space-x-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium cursor-pointer transition shadow-sm">
+                    <i data-lucide="upload" class="w-4 h-4"></i>
+                    <span class="hidden md:inline">Importar</span>
+                    <input type="file" id="importFile" accept=".json" class="hidden" onchange="importJSON(event)">
                 </label>
+                <button onclick="toggleDarkMode()" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition" title="Cambiar Tema">
+                    <i id="theme-icon" data-lucide="sun" class="w-5 h-5"></i>
+                </button>
             </div>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <!-- Navegación por Pestañas -->
+    <nav class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-4 sm:space-x-8">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition border-brand-500 text-brand-600 dark:text-brand-500">
+                <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                <span>Dashboard</span>
+            </button>
+            <button onclick="switchTab('presupuestos')" id="tab-presupuestos" class="tab-btn flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+                <i data-lucide="sliders" class="w-4 h-4"></i>
+                <span>Presupuestos</span>
+            </button>
+            <button onclick="switchTab('gastos')" id="tab-gastos" class="tab-btn flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+                <i data-lucide="receipt" class="w-4 h-4"></i>
+                <span>Gastos</span>
+            </button>
+        </div>
+    </nav>
 
-        <!-- Banner de Bienvenida y Selector de Periodo -->
-        <div class="bg-gradient-to-r from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
-            <div class="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-                <div>
-                    <span class="text-xs uppercase tracking-wider text-brand-400 font-bold bg-brand-500/10 px-2.5 py-1 rounded-full inline-block mb-2 border border-brand-500/20">Planificación Financiera</span>
-                    <h2 class="text-2xl sm:text-3xl font-extrabold" id="welcomeMessage">¡Hola, Admin!</h2>
-                    <p class="text-slate-400 text-sm mt-1">Este es tu desglose de disponibilidad financiera diaria para este periodo.</p>
+    <!-- Contenido Principal -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- PESTAÑA: DASHBOARD -->
+        <section id="content-dashboard" class="space-y-6">
+            <!-- Tarjeta KPI Destacada: Límite Diario -->
+            <div class="bg-gradient-to-br from-brand-600 to-emerald-700 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+                <div class="absolute -right-6 -bottom-6 opacity-10">
+                    <i data-lucide="trending-up" class="w-48 h-48"></i>
                 </div>
-                <div class="flex flex-wrap items-center gap-3 bg-white/5 backdrop-blur-md p-3 rounded-xl border border-white/10">
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="calendar" class="w-4 h-4 text-brand-400"></i>
-                        <span class="text-xs font-semibold text-slate-300">Periodo:</span>
+                <div class="relative z-10">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs uppercase tracking-wider font-semibold text-emerald-100">Límite Máximo por Día (Recomendado)</span>
+                        <span id="dash-days-left" class="text-xs bg-emerald-800/60 px-2.5 py-1 rounded-full text-emerald-100 font-medium">-- días restantes</span>
                     </div>
-                    <div class="flex gap-2">
-                        <select id="monthSelect" onchange="updateCalculations()" class="bg-slate-800 border border-slate-700 text-white text-xs sm:text-sm rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-brand-500 outline-none">
-                            <option value="0">Enero</option>
-                            <option value="1">Febrero</option>
-                            <option value="2">Marzo</option>
-                            <option value="3">Abril</option>
-                            <option value="4">Mayo</option>
-                            <option value="5">Junio</option>
-                            <option value="6">Julio</option>
-                            <option value="7">Agosto</option>
-                            <option value="8">Septiembre</option>
-                            <option value="9">Octubre</option>
-                            <option value="10">Noviembre</option>
-                            <option value="11">Diciembre</option>
-                        </select>
-                        <select id="yearSelect" onchange="updateCalculations()" class="bg-slate-800 border border-slate-700 text-white text-xs sm:text-sm rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-brand-500 outline-none">
-                        </select>
-                    </div>
+                    <div class="text-3xl sm:text-5xl font-black tracking-tight mb-2" id="dash-daily-limit">0.00</div>
+                    <p class="text-xs sm:text-sm text-emerald-100">Monto máximo sugerido para gastar hoy sin comprometer tu ahorro ni tus obligaciones.</p>
                 </div>
             </div>
-        </div>
 
-        <!-- Navigation Tabs -->
-        <div class="border-b border-slate-200 dark:border-slate-700">
-            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="border-brand-500 text-brand-600 dark:text-brand-400 border-b-2 py-3 px-1 text-sm font-semibold flex items-center gap-2">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-                    Dashboard Principal
-                </button>
-                <button onclick="switchTab('config')" id="tab-config" class="border-transparent text-slate-500 dark:text-slate-400 hover:border-slate-300 hover:text-slate-700 dark:hover:text-slate-200 border-b-2 py-3 px-1 text-sm font-medium flex items-center gap-2">
-                    <i data-lucide="sliders" class="w-4 h-4"></i>
-                    Configuración Presupuestaria
-                </button>
-                <button onclick="switchTab('log')" id="tab-log" class="border-transparent text-slate-500 dark:text-slate-400 hover:border-slate-300 hover:text-slate-700 dark:hover:text-slate-200 border-b-2 py-3 px-1 text-sm font-medium flex items-center gap-2">
-                    <i data-lucide="receipt" class="w-4 h-4"></i>
-                    Registro de Gastos Diarios
-                </button>
-            </nav>
-        </div>
-
-        <!-- TAB 1: DASHBOARD -->
-        <section id="sec-dashboard" class="space-y-6">
-            <!-- Metric Cards Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                
-                <!-- KPI: Máximo Diario -->
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden transition-colors">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Máximo Gastable por Día</span>
-                        <div class="p-2 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-xl">
-                            <i data-lucide="sun" class="w-5 h-5"></i>
+            <!-- Tarjetas Secundarias -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- Ahorro Mensual -->
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Ahorro Objetivo</span>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="togglePrivacy('savings')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition" title="Ocultar/Mostrar">
+                                <i id="icon-privacy-savings" data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                            <div class="p-2 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded-lg">
+                                <i data-lucide="piggy-bank" class="w-5 h-5"></i>
+                            </div>
                         </div>
                     </div>
-                    <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight" id="kpiDailyLimit">$0.00</div>
-                    <div class="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                        <span class="font-medium text-slate-700 dark:text-slate-300" id="kpiDaysInMonth">30 días</span> en este mes
+                    <div>
+                        <div class="text-2xl font-bold tracking-tight privacy-target" data-value-type="savings" id="dash-savings-val">0.00</div>
+                        <span id="dash-savings-pct" class="text-xs text-slate-500 dark:text-slate-400 font-medium">0% del excedente</span>
                     </div>
                 </div>
 
-                <!-- KPI: Ahorro Proyectado (Privacidad Toggle) -->
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden transition-colors">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ahorro Mensual Objetivo</span>
-                        <button onclick="togglePrivacy('savings')" class="p-2 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded-xl hover:opacity-80 transition" title="Ocultar/Mostrar">
-                            <i id="eye-savings" data-lucide="eye-off" class="w-5 h-5"></i>
-                        </button>
+                <!-- Ingresos Fijos Totales -->
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Ingresos Fijos</span>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="togglePrivacy('income')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition" title="Ocultar/Mostrar">
+                                <i id="icon-privacy-income" data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                            <div class="p-2 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-lg">
+                                <i data-lucide="arrow-down-left" class="w-5 h-5"></i>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight" id="kpiTotalSavings">*****</div>
-                    <div class="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                        Equivale al <span class="font-bold text-blue-600 dark:text-blue-400" id="kpiSavingsPercentage">0%</span> del sobrante neto
-                    </div>
-                </div>
-
-                <!-- KPI: Total Ingresos Fijos (Privacidad Toggle) -->
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden transition-colors">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ingresos Fijos Totales</span>
-                        <button onclick="togglePrivacy('income')" class="p-2 bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 rounded-xl hover:opacity-80 transition" title="Ocultar/Mostrar">
-                            <i id="eye-income" data-lucide="eye-off" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-                    <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight" id="kpiTotalIncome">*****</div>
-                    <div class="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                        Total percibido en el mes
+                    <div>
+                        <div class="text-2xl font-bold tracking-tight privacy-target" data-value-type="income" id="dash-income-val">0.00</div>
+                        <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total mensual</span>
                     </div>
                 </div>
 
-                <!-- KPI: Total Gastos Fijos (Privacidad Toggle) -->
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden transition-colors">
-                    <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Gastos Fijos Totales</span>
-                        <button onclick="togglePrivacy('expenses')" class="p-2 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-xl hover:opacity-80 transition" title="Ocultar/Mostrar">
-                            <i id="eye-expenses" data-lucide="eye-off" class="w-5 h-5"></i>
-                        </button>
+                <!-- Gastos Fijos Totales -->
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">Gastos Fijos</span>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="togglePrivacy('expenses')" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition" title="Ocultar/Mostrar">
+                                <i id="icon-privacy-expenses" data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                            <div class="p-2 bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 rounded-lg">
+                                <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-3xl font-black text-slate-900 dark:text-white tracking-tight" id="kpiTotalFixedExpenses">*****</div>
-                    <div class="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                        Compromisos del mes
+                    <div>
+                        <div class="text-2xl font-bold tracking-tight privacy-target" data-value-type="expenses" id="dash-expenses-val">0.00</div>
+                        <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Compromisos fijos</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Main Charts & Details Section -->
+            <!-- Resumen Financiero Diario & Gráfico -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Visual Progression / Breakdown -->
-                <div class="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm space-y-6 transition-colors">
-                    <h3 class="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
-                        <i data-lucide="pie-chart" class="w-5 h-5 text-brand-600 dark:text-brand-400"></i>
-                        Distribución del Presupuesto
-                    </h3>
-
-                    <!-- Visual Progress Bar -->
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-xs font-medium text-slate-600 dark:text-slate-300">
-                            <span>Desglose General del Ingreso</span>
-                            <span id="incomePercentageLabel">100% Utilizado</span>
-                        </div>
-                        <div class="h-4 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden flex shadow-inner" id="budgetProgressBar">
-                            <div id="barExpenses" class="bg-rose-500 h-full transition-all duration-500" title="Gastos Fijos" style="width: 0%"></div>
-                            <div id="barSavings" class="bg-blue-500 h-full transition-all duration-500" title="Ahorro Objetivo" style="width: 0%"></div>
-                            <div id="barDaily" class="bg-emerald-500 h-full transition-all duration-500" title="Disponible Diario" style="width: 0%"></div>
-                        </div>
-                        <div class="flex flex-wrap gap-4 text-xs pt-2">
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span>
-                                <span class="text-slate-600 dark:text-slate-300 font-medium">Gastos Fijos</span>
+                <!-- Estado Diario Detallado -->
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm lg:col-span-1 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-base font-bold mb-4 flex items-center space-x-2">
+                            <i data-lucide="activity" class="w-5 h-5 text-brand-500"></i>
+                            <span>Estado Financiero Diario</span>
+                        </h3>
+                        <div class="space-y-4 text-sm">
+                            <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+                                <span class="text-slate-500 dark:text-slate-400">Límite por Día Original:</span>
+                                <span class="font-semibold" id="stat-orig-limit">0.00</span>
                             </div>
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span>
-                                <span class="text-slate-600 dark:text-slate-300 font-medium">Ahorro Objetivo</span>
+                            <div class="flex justify-between items-center py-2 border-b border-slate-100 dark:border-slate-800">
+                                <span class="text-slate-500 dark:text-slate-400">Promedio Gastado/Día:</span>
+                                <span class="font-semibold text-rose-600" id="stat-avg-spent">0.00</span>
                             </div>
-                            <div class="flex items-center gap-1.5">
-                                <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span>
-                                <span class="text-slate-600 dark:text-slate-300 font-medium">Fondo Diario Variable</span>
+                            <div class="flex justify-between items-center py-2">
+                                <span class="text-slate-500 dark:text-slate-400">Restante Real por Día:</span>
+                                <span class="font-bold text-brand-600 text-base" id="stat-real-limit">0.00</span>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Resumen del Balance Neto -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-100 dark:border-slate-700">
-                        <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                            <span class="text-xs font-medium text-slate-500 dark:text-slate-400 block mb-1">Ingreso Neto Disponible</span>
-                            <span class="text-lg font-bold text-slate-900 dark:text-white" id="dashNetIncome">$0.00</span>
-                            <span class="text-[10px] text-slate-400 block mt-0.5">(Ingresos - Gastos Fijos)</span>
-                        </div>
-                        <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                            <span class="text-xs font-medium text-slate-500 dark:text-slate-400 block mb-1">Total Fondo Diario</span>
-                            <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400" id="dashTotalDailyPool">$0.00</span>
-                            <span class="text-[10px] text-slate-400 block mt-0.5">(Neto - Ahorros)</span>
-                        </div>
-                        <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                            <span class="text-xs font-medium text-slate-500 dark:text-slate-400 block mb-1">Gastos Diarios Registrados</span>
-                            <span class="text-lg font-bold text-amber-600 dark:text-amber-400" id="dashSpentDaily">$0.00</span>
-                            <span class="text-[10px] text-slate-400 block mt-0.5">Consumido este mes</span>
-                        </div>
+                    <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <button onclick="switchTab('gastos')" class="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 font-medium py-2.5 rounded-lg text-xs sm:text-sm transition flex items-center justify-center space-x-2">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            <span>Registrar Gasto Diario</span>
+                        </button>
                     </div>
+                </div>
 
-                    <!-- Gráfico circular Chart.js -->
-                    <div class="relative h-64 w-full flex justify-center items-center">
+                <!-- Gráfico de Distribución -->
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm lg:col-span-2 flex flex-col items-center justify-center">
+                    <div class="w-full flex justify-between items-center mb-4">
+                        <h3 class="text-base font-bold flex items-center space-x-2">
+                            <i data-lucide="pie-chart" class="w-5 h-5 text-brand-500"></i>
+                            <span>Distribución Mensual</span>
+                        </h3>
+                        <span class="text-xs text-slate-500 dark:text-slate-400 font-medium" id="dash-month-year-label">--</span>
+                    </div>
+                    <div class="w-full max-w-xs h-64 relative">
                         <canvas id="budgetChart"></canvas>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <!-- Panel de Alerta y Estado Diario Actual -->
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col justify-between space-y-6 transition-colors">
+        <!-- PESTAÑA: PRESUPUESTOS (CONFIGURACIÓN) -->
+        <section id="content-presupuestos" class="space-y-6 hidden">
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                <div>
+                    <h2 class="text-lg font-bold">Configuración del Presupuesto</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Personaliza tus ingresos, gastos fijos y meta de ahorro mensual.</p>
+                </div>
+
+                <!-- Perfil & Moneda -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                     <div>
-                        <h3 class="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2 mb-4">
-                            <i data-lucide="shield-check" class="w-5 h-5 text-brand-600 dark:text-brand-400"></i>
-                            Estado Financiero Diario
-                        </h3>
-                        
-                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 space-y-4">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-slate-600 dark:text-slate-400">Límite por Día Original:</span>
-                                <span class="font-bold text-slate-900 dark:text-white" id="sideOriginalDaily">$0.00</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-slate-600 dark:text-slate-400">Promedio Gastado/Día:</span>
-                                <span class="font-bold text-amber-600 dark:text-amber-400" id="sideAvgDailySpent">$0.00</span>
-                            </div>
-                            <div class="border-t border-slate-200 dark:border-slate-700 pt-3 flex items-center justify-between">
-                                <span class="text-sm font-semibold text-slate-900 dark:text-white">Restante Real por Día:</span>
-                                <span class="font-extrabold text-lg text-emerald-600 dark:text-emerald-400" id="sideAdjustedDaily">$0.00</span>
-                            </div>
-                        </div>
-
-                        <!-- Estado / Recomendación -->
-                        <div id="statusAlertBox" class="mt-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs space-y-1">
-                            <div class="font-bold flex items-center gap-1 text-emerald-900 dark:text-emerald-200 text-sm">
-                                <i data-lucide="check-circle" class="w-4 h-4"></i> Presupuesto Saludable
-                            </div>
-                            <p id="statusAlertText">Tus finanzas proyectan una capacidad sostenida de gasto sin comprometer la meta de ahorro.</p>
-                        </div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 mb-1">Nombre de Usuario</label>
+                        <input type="text" id="cfg-user" onchange="saveConfig()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                     </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 mb-1">Mes y Año Actual</label>
+                        <input type="month" id="cfg-date" onchange="saveConfig()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 mb-1">Símbolo de Moneda</label>
+                        <input type="text" id="cfg-currency" onchange="saveConfig()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Ej. S/, $, €">
+                    </div>
+                </div>
 
-                    <div class="pt-4 border-t border-slate-100 dark:border-slate-700">
-                        <button onclick="switchTab('log')" class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 dark:bg-brand-600 dark:hover:bg-brand-500 text-white rounded-xl text-sm font-semibold shadow-md transition flex items-center justify-center gap-2">
-                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                            Registrar Gasto de Hoy
+                <!-- Porcentaje de Ahorro -->
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs font-semibold uppercase text-slate-500 dark:text-slate-400">Porcentaje de Ahorro Deseado</label>
+                        <span id="savings-pct-label" class="text-sm font-bold text-brand-600">15%</span>
+                    </div>
+                    <input type="range" id="cfg-savings-pct" min="0" max="100" step="1" value="15" oninput="updateSavingsPctDisplay(this.value)" onchange="saveConfig()" class="w-full accent-brand-500 cursor-pointer">
+                    <p class="text-xs text-slate-400 mt-1">Este porcentaje se aplicará sobre la diferencia neta (Ingresos Fijos – Gastos Fijos).</p>
+                </div>
+
+                <!-- Ingresos Fijos -->
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-sm sm:text-base flex items-center space-x-2">
+                            <i data-lucide="arrow-down-left" class="w-4 h-4 text-emerald-500"></i>
+                            <span>Ingresos Fijos</span>
+                        </h3>
+                        <button onclick="addIncomeRow()" class="bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900 text-emerald-600 dark:text-emerald-400 text-xs font-medium px-3 py-1.5 rounded-lg transition flex items-center space-x-1">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                            <span>Agregar Ingreso</span>
                         </button>
+                    </div>
+                    <div id="income-list" class="space-y-2">
+                        <!-- Generado Dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Gastos Fijos -->
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-sm sm:text-base flex items-center space-x-2">
+                            <i data-lucide="arrow-up-right" class="w-4 h-4 text-rose-500"></i>
+                            <span>Gastos Fijos (Tipos: Teléfono, Aseo, Movilidad, etc.)</span>
+                        </h3>
+                        <button onclick="addExpenseRow()" class="bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900 text-rose-600 dark:text-rose-400 text-xs font-medium px-3 py-1.5 rounded-lg transition flex items-center space-x-1">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                            <span>Agregar Gasto Fijo</span>
+                        </button>
+                    </div>
+                    <div id="fixed-expenses-list" class="space-y-2">
+                        <!-- Generado Dinámicamente -->
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- TAB 2: CONFIGURACIÓN -->
-        <section id="sec-config" class="hidden space-y-6">
-            <!-- Datos Personales & Meta Ahorro -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Usuario y Preferencias -->
-                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4 transition-colors">
-                    <h3 class="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
-                        <i data-lucide="user" class="w-5 h-5 text-brand-600 dark:text-brand-400"></i>
-                        Perfil de Usuario
+        <!-- PESTAÑA: GASTOS DIARIOS -->
+        <section id="content-gastos" class="space-y-6 hidden">
+            <div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
+                <div>
+                    <h2 class="text-lg font-bold">Registro de Gastos Diarios</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Anota tus consumos cotidianos para recalcular tu límite restante en tiempo real.</p>
+                </div>
+
+                <!-- Formulario Agregar Gasto Diario -->
+                <form onsubmit="handleDailyExpenseSubmit(event)" class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700/60 grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                    <div class="sm:col-span-3">
+                        <label class="block text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 mb-1">Fecha</label>
+                        <input type="date" id="daily-date" required class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div class="sm:col-span-5">
+                        <label class="block text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 mb-1">Descripción</label>
+                        <input type="text" id="daily-desc" placeholder="Ej. Almuerzo, Café, Pasajes" required class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold uppercase text-slate-500 dark:text-slate-400 mb-1">Monto</label>
+                        <input type="number" id="daily-amount" step="1" min="0" placeholder="0" required class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition shadow-sm flex items-center justify-center space-x-1">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            <span>Agregar</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Historial de Gastos Diarios -->
+                <div class="space-y-3 pt-2">
+                    <h3 class="font-bold text-sm sm:text-base flex items-center space-x-2">
+                        <i data-lucide="history" class="w-4 h-4 text-brand-500"></i>
+                        <span>Gastos Registrados en el Periodo</span>
                     </h3>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Nombre o Alias</label>
-                        <input type="text" id="usernameInput" oninput="saveData(); updateCalculations();" placeholder="Ej: Admin" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none text-sm transition">
-                    </div>
-                </div>
-
-                <!-- Ajuste del Ahorro -->
-                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4 transition-colors">
-                    <div class="flex justify-between items-center">
-                        <h3 class="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
-                            <i data-lucide="target" class="w-5 h-5 text-brand-600 dark:text-brand-400"></i>
-                            Meta de Ahorro
-                        </h3>
-                        <span class="text-lg font-black text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/60 px-3 py-1 rounded-xl border border-brand-200 dark:border-brand-800" id="savingsRangeValue">10%</span>
-                    </div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400">Porcentaje que deseas retener del saldo sobrante (Ingresos - Gastos Fijos) antes de calcular el diario.</p>
-                    <div class="space-y-2">
-                        <input type="range" id="savingsRange" min="0" max="90" step="1" value="10" oninput="updateSavingsLabel(this.value); saveData(); updateCalculations();" class="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-brand-600">
-                        <div class="flex justify-between text-[11px] text-slate-400 font-medium">
-                            <span>0% (Sin Ahorro)</span>
-                            <span>25%</span>
-                            <span>50%</span>
-                            <span>75%+</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Listas dinámicas: Ingresos y Gastos Fijos -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Lista de Ingresos Fijos -->
-                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4 transition-colors">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h3 class="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
-                                <i data-lucide="arrow-down-left" class="w-5 h-5 text-emerald-600 dark:text-emerald-400"></i>
-                                Ingresos Fijos
-                            </h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">Sueldo, rentas, trabajos independientes, etc.</p>
-                        </div>
-                        <button onclick="addIncomeItem()" class="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900 font-semibold rounded-lg text-xs flex items-center gap-1 transition">
-                            <i data-lucide="plus" class="w-4 h-4"></i> Agregar
-                        </button>
-                    </div>
-
-                    <div id="incomeList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
-                        <!-- Generado dinámicamente -->
-                    </div>
-
-                    <div class="pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center text-sm font-bold text-slate-900 dark:text-white">
-                        <span>Total Ingresos Fijos:</span>
-                        <span id="configTotalIncome" class="text-emerald-600 dark:text-emerald-400">$0.00</span>
-                    </div>
-                </div>
-
-                <!-- Lista de Gastos Fijos -->
-                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4 transition-colors">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h3 class="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
-                                <i data-lucide="arrow-up-right" class="w-5 h-5 text-rose-600 dark:text-rose-400"></i>
-                                Gastos Fijos Mensuales
-                            </h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400">Teléfono, útiles, movilidad, educación, deudas...</p>
-                        </div>
-                        <button onclick="addExpenseItem()" class="px-3 py-1.5 bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900 font-semibold rounded-lg text-xs flex items-center gap-1 transition">
-                            <i data-lucide="plus" class="w-4 h-4"></i> Agregar
-                        </button>
-                    </div>
-
-                    <div id="expenseList" class="space-y-3 max-h-80 overflow-y-auto pr-1">
-                        <!-- Generado dinámicamente -->
-                    </div>
-
-                    <div class="pt-3 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center text-sm font-bold text-slate-900 dark:text-white">
-                        <span>Total Gastos Fijos:</span>
-                        <span id="configTotalExpense" class="text-rose-600 dark:text-rose-400">$0.00</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- TAB 3: REGISTRO DIARIO -->
-        <section id="sec-log" class="hidden space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Formulario de Registro de Gasto -->
-                <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4 h-fit transition-colors">
-                    <h3 class="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
-                        <i data-lucide="plus-circle" class="w-5 h-5 text-brand-600 dark:text-brand-400"></i>
-                        Registrar Consumo
-                    </h3>
-                    <form id="dailyExpenseForm" onsubmit="handleAddDailyExpense(event)" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Día del Mes</label>
-                            <input type="number" id="logDayInput" step="1" min="1" max="31" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none" required>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Concepto / Descripción</label>
-                            <input type="text" id="logDescInput" placeholder="Ej: Almuerzo fuera, Taxi, Café" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none" required>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1">Monto ($)</label>
-                            <input type="number" id="logAmountInput" step="1" min="0" placeholder="0.00" class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none" required>
-                        </div>
-                        <button type="submit" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl text-sm transition shadow-md">
-                            Guardar Gasto
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Historial de Gastos del Mes -->
-                <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4 transition-colors">
-                    <div class="flex justify-between items-center">
-                        <h3 class="font-bold text-slate-900 dark:text-white text-lg flex items-center gap-2">
-                            <i data-lucide="list-ordered" class="w-5 h-5 text-brand-600 dark:text-brand-400"></i>
-                            Historial de Gastos Variables del Mes
-                        </h3>
-                        <span class="text-xs font-bold bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-800" id="dailyLogCount">0 registros</span>
-                    </div>
-
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm text-slate-600 dark:text-slate-300">
-                            <thead class="bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 uppercase text-[11px] font-semibold border-b border-slate-200 dark:border-slate-700">
-                                <tr>
-                                    <th class="py-3 px-3">Día</th>
-                                    <th class="py-3 px-3">Concepto</th>
-                                    <th class="py-3 px-3 text-right">Monto</th>
-                                    <th class="py-3 px-3 text-center">Acción</th>
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="border-b border-slate-200 dark:border-slate-800 text-xs uppercase text-slate-400 font-semibold">
+                                    <th class="py-3 px-4">Fecha</th>
+                                    <th class="py-3 px-4">Descripción</th>
+                                    <th class="py-3 px-4 text-right">Monto</th>
+                                    <th class="py-3 px-4 text-center">Acción</th>
                                 </tr>
                             </thead>
-                            <tbody id="dailyExpensesTableBody" class="divide-y divide-slate-100 dark:divide-slate-700">
-                                <!-- Generado dinámicamente -->
+                            <tbody id="daily-expenses-table-body" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                <!-- Generado Dinámicamente -->
                             </tbody>
                         </table>
                     </div>
@@ -455,405 +335,405 @@
 
     </main>
 
-    <!-- Modal para Notificaciones / Alertas -->
-    <div id="notificationModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl border border-slate-200 dark:border-slate-700">
-            <div id="modalIcon" class="w-12 h-12 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto">
-                <i data-lucide="info" class="w-6 h-6"></i>
-            </div>
-            <h4 id="modalTitle" class="font-bold text-lg text-slate-900 dark:text-white">Mensaje</h4>
-            <p id="modalMessage" class="text-xs text-slate-500 dark:text-slate-400">Detalle de la alerta o confirmación.</p>
-            <button onclick="closeModal()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 dark:bg-brand-600 dark:hover:bg-brand-500 text-white text-sm font-semibold rounded-xl transition">Entendido</button>
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-500 dark:text-slate-400">
+            Control de Presupuesto Diario &bull; Arquitectura Responsiva con Tailwind & JS
         </div>
-    </div>
+    </footer>
 
-    <!-- Application Logic Script -->
+    <!-- Lógica de la Aplicación -->
     <script>
-        // Default App State
-        let appState = {
-            username: "Admin",
-            selectedMonth: new Date().getMonth(),
-            selectedYear: new Date().getFullYear(),
-            savingsPercentage: 10,
-            darkMode: false,
-            privacy: {
+        // Estado Global de la Aplicación
+        let state = {
+            user: "Admin",
+            date: new Date().toISOString().slice(0, 7), // YYYY-MM
+            currency: "S/",
+            savingsPct: 15,
+            incomes: [
+                { id: 1, name: "Sueldo Principal", amount: 3500 }
+            ],
+            fixedExpenses: [
+                { id: 1, name: "Teléfono", amount: 60 },
+                { id: 2, name: "Útiles de Aseo", amount: 80 },
+                { id: 3, name: "Movilidad", amount: 200 },
+                { id: 4, name: "Almuerzos", amount: 450 },
+                { id: 5, name: "Educación", amount: 300 },
+                { id: 6, name: "Deudas Pendientes", amount: 500 }
+            ],
+            dailyExpenses: [],
+            privacyMode: {
                 savings: false,
                 income: false,
                 expenses: false
-            },
-            incomes: [
-                { id: '1', concept: 'Sueldo Base', amount: 2500 }
-            ],
-            expenses: [
-                { id: '1', concept: 'Servicios (Luz/Agua/Teléfono)', amount: 120 },
-                { id: '2', concept: 'Alimentos y Supermercado', amount: 450 },
-                { id: '3', concept: 'Educación / Cursos', amount: 150 },
-                { id: '4', concept: 'Movilidad y Pasajes', amount: 100 }
-            ],
-            dailyLogs: []
+            }
         };
 
         let budgetChartInstance = null;
 
-        // Initialize App on DOM Loaded
+        // Inicialización
         document.addEventListener('DOMContentLoaded', () => {
-            initYearDropdown();
-            loadLocalStorage();
-            applyDarkModeUI();
-            setupInitialInputs();
-            updateCalculations();
+            loadFromLocalStorage();
+            initTheme();
+            renderAll();
             lucide.createIcons();
-            
-            document.getElementById('logDayInput').value = Math.min(new Date().getDate(), getDaysInMonth(appState.selectedYear, appState.selectedMonth));
+
+            // Set default date for daily expense form to today
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const dailyDateInput = document.getElementById('daily-date');
+            if(dailyDateInput && !dailyDateInput.value) {
+                dailyDateInput.value = todayStr;
+            }
         });
 
-        // Dark Mode Controller
-        function toggleDarkMode() {
-            appState.darkMode = !appState.darkMode;
-            applyDarkModeUI();
-            saveData();
-            updateCalculations();
-        }
-
-        function applyDarkModeUI() {
-            if (appState.darkMode) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
-            }
-        }
-
-        // Privacy Toggle Controller
-        function togglePrivacy(key) {
-            appState.privacy[key] = !appState.privacy[key];
-            saveData();
-            updateCalculations();
-        }
-
-        // Initialize Years
-        function initYearDropdown() {
-            const yearSelect = document.getElementById('yearSelect');
-            const currentYear = new Date().getFullYear();
-            yearSelect.innerHTML = '';
-            for (let y = currentYear - 2; y <= currentYear + 5; y++) {
-                const opt = document.createElement('option');
-                opt.value = y;
-                opt.textContent = y;
-                if (y === currentYear) opt.selected = true;
-                yearSelect.appendChild(opt);
-            }
-        }
-
-        // Navigation Tabs Controller
-        function switchTab(tab) {
-            ['dashboard', 'config', 'log'].forEach(t => {
-                document.getElementById(`sec-${t}`).classList.add('hidden');
-                const tabBtn = document.getElementById(`tab-${t}`);
-                tabBtn.classList.remove('border-brand-500', 'text-brand-600', 'dark:text-brand-400', 'font-semibold');
-                tabBtn.classList.add('border-transparent', 'text-slate-500', 'dark:text-slate-400', 'font-medium');
+        // Manejo de Pestañas
+        function switchTab(tabId) {
+            document.querySelectorAll('section[id^="content-"]').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-brand-500', 'text-brand-600', 'dark:text-brand-500');
+                btn.classList.add('border-transparent', 'text-slate-500', 'dark:text-slate-400');
             });
 
-            document.getElementById(`sec-${tab}`).classList.remove('hidden');
-            const activeBtn = document.getElementById(`tab-${tab}`);
-            activeBtn.classList.add('border-brand-500', 'text-brand-600', 'dark:text-brand-400', 'font-semibold');
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tabId}`);
             activeBtn.classList.remove('border-transparent', 'text-slate-500', 'dark:text-slate-400');
-        }
+            activeBtn.classList.add('border-brand-500', 'text-brand-600', 'dark:text-brand-500');
 
-        // Calculate days in selected month
-        function getDaysInMonth(year, month) {
-            return new Date(year, parseInt(month) + 1, 0).getDate();
-        }
-
-        // Setup values from state to DOM inputs
-        function setupInitialInputs() {
-            document.getElementById('usernameInput').value = appState.username || 'Admin';
-            document.getElementById('monthSelect').value = appState.selectedMonth;
-            document.getElementById('yearSelect').value = appState.selectedYear;
-            document.getElementById('savingsRange').value = appState.savingsPercentage;
-            updateSavingsLabel(appState.savingsPercentage);
-            renderIncomeList();
-            renderExpenseList();
-            renderDailyLogs();
-        }
-
-        function updateSavingsLabel(val) {
-            document.getElementById('savingsRangeValue').textContent = `${val}%`;
-        }
-
-        // RENDER lists
-        function renderIncomeList() {
-            const container = document.getElementById('incomeList');
-            container.innerHTML = '';
-            appState.incomes.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'flex items-center gap-2 bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700';
-                div.innerHTML = `
-                    <input type="text" value="${escapeHtml(item.concept)}" onchange="updateIncome('${item.id}', 'concept', this.value)" placeholder="Concepto" class="flex-1 bg-white dark:bg-slate-800 px-2.5 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white rounded-lg text-xs font-medium focus:ring-1 focus:ring-emerald-500 outline-none">
-                    <div class="relative w-28">
-                        <span class="absolute left-2.5 top-1.5 text-xs text-slate-400">$</span>
-                        <input type="number" step="1" value="${item.amount}" onchange="updateIncome('${item.id}', 'amount', this.value)" placeholder="0.00" class="w-full bg-white dark:bg-slate-800 pl-6 pr-2 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white rounded-lg text-xs font-bold text-right focus:ring-1 focus:ring-emerald-500 outline-none">
-                    </div>
-                    <button onclick="removeIncome('${item.id}')" class="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    </button>
-                `;
-                container.appendChild(div);
-            });
+            if(tabId === 'dashboard') {
+                updateChart();
+            }
             lucide.createIcons();
         }
 
-        function renderExpenseList() {
-            const container = document.getElementById('expenseList');
-            container.innerHTML = '';
-            appState.expenses.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'flex items-center gap-2 bg-slate-50 dark:bg-slate-900/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700';
-                div.innerHTML = `
-                    <input type="text" value="${escapeHtml(item.concept)}" onchange="updateExpense('${item.id}', 'concept', this.value)" placeholder="Concepto de Gasto" class="flex-1 bg-white dark:bg-slate-800 px-2.5 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white rounded-lg text-xs font-medium focus:ring-1 focus:ring-rose-500 outline-none">
-                    <div class="relative w-28">
-                        <span class="absolute left-2.5 top-1.5 text-xs text-slate-400">$</span>
-                        <input type="number" step="1" value="${item.amount}" onchange="updateExpense('${item.id}', 'amount', this.value)" placeholder="0.00" class="w-full bg-white dark:bg-slate-800 pl-6 pr-2 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white rounded-lg text-xs font-bold text-right focus:ring-1 focus:ring-rose-500 outline-none">
-                    </div>
-                    <button onclick="removeExpense('${item.id}')" class="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    </button>
-                `;
-                container.appendChild(div);
-            });
-            lucide.createIcons();
-        }
-
-        function renderDailyLogs() {
-            const tbody = document.getElementById('dailyExpensesTableBody');
-            tbody.innerHTML = '';
-            
-            const sortedLogs = [...appState.dailyLogs].sort((a, b) => b.day - a.day);
-
-            if (sortedLogs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-xs text-slate-400 font-medium">No hay gastos registrados en este mes todavía.</td></tr>`;
+        // Modo Oscuro
+        function initTheme() {
+            if (localStorage.getItem('theme') === 'light') {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('theme-icon').setAttribute('data-lucide', 'moon');
             } else {
-                sortedLogs.forEach(log => {
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50 dark:hover:bg-slate-700/50 transition";
-                    tr.innerHTML = `
-                        <td class="py-3 px-3 font-semibold text-slate-700 dark:text-slate-300">Día ${log.day}</td>
-                        <td class="py-3 px-3 text-slate-900 dark:text-white font-medium">${escapeHtml(log.concept)}</td>
-                        <td class="py-3 px-3 text-right font-bold text-rose-600 dark:text-rose-400">$${formatMoney(log.amount)}</td>
-                        <td class="py-3 px-3 text-center">
-                            <button onclick="removeDailyLog('${log.id}')" class="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition">
-                                <i data-lucide="trash-2" class="w-4 h-4 inline"></i>
-                            </button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-icon').setAttribute('data-lucide', 'sun');
             }
-            document.getElementById('dailyLogCount').textContent = `${appState.dailyLogs.length} registros`;
+        }
+
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                document.getElementById('theme-icon').setAttribute('data-lucide', 'moon');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                document.getElementById('theme-icon').setAttribute('data-lucide', 'sun');
+            }
             lucide.createIcons();
         }
 
-        // Data Manipulation Handlers
-        function addIncomeItem() {
-            appState.incomes.push({ id: Date.now().toString(), concept: 'Nuevo Ingreso', amount: 0 });
-            renderIncomeList();
-            saveData();
-            updateCalculations();
+        // Toggle Privacidad (Ocultar/Mostrar Cifras)
+        function togglePrivacy(key) {
+            state.privacyMode[key] = !state.privacyMode[key];
+            const iconElem = document.getElementById(`icon-privacy-${key}`);
+            if(state.privacyMode[key]) {
+                iconElem.setAttribute('data-lucide', 'eye-off');
+            } else {
+                iconElem.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+            renderDashboardValues();
         }
 
-        function updateIncome(id, field, value) {
-            const item = appState.incomes.find(i => i.id === id);
-            if (item) {
-                item[field] = field === 'amount' ? parseFloat(value) || 0 : value;
-                saveData();
-                updateCalculations();
+        // Persistencia LocalStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('budget_app_state', JSON.stringify(state));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('budget_app_state');
+            if(saved) {
+                try {
+                    state = JSON.parse(saved);
+                    if(!state.currency) state.currency = "S/";
+                } catch(e) {
+                    console.error("Error cargando localStorage", e);
+                }
             }
         }
 
-        function removeIncome(id) {
-            appState.incomes = appState.incomes.filter(i => i.id !== id);
+        // Actualizar UI desde Configuración
+        function saveConfig() {
+            state.user = document.getElementById('cfg-user').value.trim() || "Admin";
+            state.date = document.getElementById('cfg-date').value;
+            state.currency = document.getElementById('cfg-currency').value.trim() || "S/";
+            state.savingsPct = parseFloat(document.getElementById('cfg-savings-pct').value) || 0;
+            saveToLocalStorage();
+            renderAll();
+        }
+
+        function updateSavingsPctDisplay(val) {
+            document.getElementById('savings-pct-label').innerText = `${val}%`;
+        }
+
+        // Renderizado general
+        function renderAll() {
+            // Sincronizar inputs de config
+            document.getElementById('cfg-user').value = state.user;
+            document.getElementById('cfg-date').value = state.date;
+            document.getElementById('cfg-currency').value = state.currency;
+            document.getElementById('cfg-savings-pct').value = state.savingsPct;
+            document.getElementById('savings-pct-label').innerText = `${state.savingsPct}%`;
+
             renderIncomeList();
-            saveData();
-            updateCalculations();
+            renderFixedExpensesList();
+            renderDailyExpensesTable();
+            renderDashboardValues();
+            updateChart();
         }
 
-        function addExpenseItem() {
-            appState.expenses.push({ id: Date.now().toString(), concept: 'Nuevo Gasto Fijo', amount: 0 });
-            renderExpenseList();
-            saveData();
-            updateCalculations();
+        // Listas Dinámicas Ingresos & Gastos Fijos
+        function renderIncomeList() {
+            const container = document.getElementById('income-list');
+            container.innerHTML = '';
+            state.incomes.forEach((inc, idx) => {
+                const div = document.createElement('div');
+                div.className = "flex flex-col sm:flex-row gap-2 items-center bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-700/60";
+                div.innerHTML = `
+                    <input type="text" value="${inc.name}" onchange="updateIncome(${idx}, 'name', this.value)" placeholder="Concepto de ingreso" class="w-full sm:flex-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500">
+                    <div class="flex w-full sm:w-auto items-center gap-2">
+                        <input type="number" step="1" min="0" value="${inc.amount}" onchange="updateIncome(${idx}, 'amount', this.value)" placeholder="Monto" class="w-full sm:w-36 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500">
+                        <button onclick="removeIncome(${idx})" class="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition" title="Eliminar">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
         }
 
-        function updateExpense(id, field, value) {
-            const item = appState.expenses.find(e => e.id === id);
-            if (item) {
-                item[field] = field === 'amount' ? parseFloat(value) || 0 : value;
-                saveData();
-                updateCalculations();
+        function addIncomeRow() {
+            state.incomes.push({ id: Date.now(), name: "Nuevo Ingreso", amount: 0 });
+            saveToLocalStorage();
+            renderAll();
+        }
+
+        function updateIncome(index, field, value) {
+            if(field === 'amount') {
+                state.incomes[index][field] = parseFloat(value) || 0;
+            } else {
+                state.incomes[index][field] = value;
             }
+            saveToLocalStorage();
+            renderAll();
         }
 
-        function removeExpense(id) {
-            appState.expenses = appState.expenses.filter(e => e.id !== id);
-            renderExpenseList();
-            saveData();
-            updateCalculations();
+        function removeIncome(index) {
+            state.incomes.splice(index, 1);
+            saveToLocalStorage();
+            renderAll();
         }
 
-        function handleAddDailyExpense(e) {
+        function renderFixedExpensesList() {
+            const container = document.getElementById('fixed-expenses-list');
+            container.innerHTML = '';
+            state.fixedExpenses.forEach((exp, idx) => {
+                const div = document.createElement('div');
+                div.className = "flex flex-col sm:flex-row gap-2 items-center bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-700/60";
+                div.innerHTML = `
+                    <input type="text" value="${exp.name}" onchange="updateFixedExpense(${idx}, 'name', this.value)" placeholder="Tipo de gasto (ej. Teléfono)" class="w-full sm:flex-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500">
+                    <div class="flex w-full sm:w-auto items-center gap-2">
+                        <input type="number" step="1" min="0" value="${exp.amount}" onchange="updateFixedExpense(${idx}, 'amount', this.value)" placeholder="Monto" class="w-full sm:w-36 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500">
+                        <button onclick="removeFixedExpense(${idx})" class="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition" title="Eliminar">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            lucide.createIcons();
+        }
+
+        function addExpenseRow() {
+            state.fixedExpenses.push({ id: Date.now(), name: "Nuevo Gasto Fijo", amount: 0 });
+            saveToLocalStorage();
+            renderAll();
+        }
+
+        function updateFixedExpense(index, field, value) {
+            if(field === 'amount') {
+                state.fixedExpenses[index][field] = parseFloat(value) || 0;
+            } else {
+                state.fixedExpenses[index][field] = value;
+            }
+            saveToLocalStorage();
+            renderAll();
+        }
+
+        function removeFixedExpense(index) {
+            state.fixedExpenses.splice(index, 1);
+            saveToLocalStorage();
+            renderAll();
+        }
+
+        // Cálculos Financieros & Dashboard
+        function getDaysInMonth(yearMonthStr) {
+            if(!yearMonthStr) return 30;
+            const [year, month] = yearMonthStr.split('-').map(Number);
+            return new Date(year, month, 0).getDate();
+        }
+
+        function formatMoney(amount) {
+            return `${state.currency} ${amount.toFixed(2)}`;
+        }
+
+        function renderDashboardValues() {
+            const totalIncome = state.incomes.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+            const totalFixedExp = state.fixedExpenses.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+
+            const netDiff = totalIncome - totalFixedExp;
+            const savingsAmount = netDiff > 0 ? netDiff * (state.savingsPct / 100) : 0;
+            const availableForSpending = netDiff - savingsAmount;
+
+            const daysInMonth = getDaysInMonth(state.date);
+            const origDailyLimit = daysInMonth > 0 ? (availableForSpending / daysInMonth) : 0;
+
+            // Filtrar gastos diarios del mes seleccionado
+            const currentMonthPrefix = state.date; // YYYY-MM
+            const monthDailyExpenses = state.dailyExpenses.filter(item => item.date.startsWith(currentMonthPrefix));
+            const totalSpentThisMonth = monthDailyExpenses.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+
+            // Calcular días transcurridos y restantes
+            const now = new Date();
+            const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            
+            let daysPassed = daysInMonth;
+            if(state.date === currentYearMonth) {
+                daysPassed = now.getDate();
+            } else if(state.date < currentYearMonth) {
+                daysPassed = daysInMonth; // Mes pasado completo
+            } else {
+                daysPassed = 0; // Mes futuro
+            }
+            if(daysPassed < 1) daysPassed = 1;
+
+            const daysRemaining = Math.max(daysInMonth - daysPassed + 1, 1);
+
+            const avgSpentPerDay = daysPassed > 0 ? (totalSpentThisMonth / daysPassed) : 0;
+            
+            // Restante Real por Día = (Disponible Total - Gastos Acumulados) / Días Restantes
+            const remainingPool = availableForSpending - totalSpentThisMonth;
+            const realDailyLimit = daysRemaining > 0 ? (remainingPool / daysRemaining) : origDailyLimit;
+
+            // Actualizar etiquetas en UI con Privacidad
+            document.getElementById('dash-days-left').innerText = `${daysRemaining} días restantes`;
+            document.getElementById('dash-daily-limit').innerText = formatMoney(realDailyLimit > 0 ? realDailyLimit : 0);
+
+            document.getElementById('dash-savings-val').innerText = state.privacyMode.savings ? '*****' : formatMoney(savingsAmount);
+            document.getElementById('dash-savings-pct').innerText = `${state.savingsPct}% del excedente`;
+
+            document.getElementById('dash-income-val').innerText = state.privacyMode.income ? '*****' : formatMoney(totalIncome);
+            document.getElementById('dash-expenses-val').innerText = state.privacyMode.expenses ? '*****' : formatMoney(totalFixedExp);
+
+            document.getElementById('stat-orig-limit').innerText = formatMoney(origDailyLimit);
+            document.getElementById('stat-avg-spent').innerText = formatMoney(avgSpentPerDay);
+            document.getElementById('stat-real-limit').innerText = formatMoney(realDailyLimit > 0 ? realDailyLimit : 0);
+
+            document.getElementById('dash-month-year-label').innerText = state.date;
+        }
+
+        // Gastos Diarios
+        function handleDailyExpenseSubmit(e) {
             e.preventDefault();
-            const day = parseInt(document.getElementById('logDayInput').value);
-            const concept = document.getElementById('logDescInput').value.trim();
-            const amount = parseFloat(document.getElementById('logAmountInput').value);
+            const date = document.getElementById('daily-date').value;
+            const desc = document.getElementById('daily-desc').value.trim();
+            const amount = parseFloat(document.getElementById('daily-amount').value) || 0;
 
-            if (!day || !concept || isNaN(amount) || amount <= 0) {
-                showModal('Campos requeridos', 'Por favor llena todos los datos correctamente.');
+            if(!date || !desc || amount <= 0) return;
+
+            state.dailyExpenses.push({
+                id: Date.now(),
+                date,
+                desc,
+                amount
+            });
+
+            // Ordenar por fecha descendente
+            state.dailyExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            document.getElementById('daily-desc').value = '';
+            document.getElementById('daily-amount').value = '';
+
+            saveToLocalStorage();
+            renderAll();
+        }
+
+        function renderDailyExpensesTable() {
+            const tbody = document.getElementById('daily-expenses-table-body');
+            tbody.innerHTML = '';
+
+            if(state.dailyExpenses.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400 text-xs">No hay gastos diarios registrados todavía.</td></tr>`;
                 return;
             }
 
-            appState.dailyLogs.push({ id: Date.now().toString(), day, concept, amount });
-            document.getElementById('logDescInput').value = '';
-            document.getElementById('logAmountInput').value = '';
-
-            renderDailyLogs();
-            saveData();
-            updateCalculations();
-            showModal('Gasto Guardado', `Se registró un gasto de $${formatMoney(amount)} para el día ${day}.`);
+            state.dailyExpenses.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-slate-800/50 transition";
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-xs sm:text-sm">${item.date}</td>
+                    <td class="py-3 px-4 text-xs sm:text-sm font-medium">${item.desc}</td>
+                    <td class="py-3 px-4 text-xs sm:text-sm text-right font-bold text-rose-600">${formatMoney(item.amount)}</td>
+                    <td class="py-3 px-4 text-center">
+                        <button onclick="removeDailyExpense(${idx})" class="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition" title="Eliminar">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            lucide.createIcons();
         }
 
-        function removeDailyLog(id) {
-            appState.dailyLogs = appState.dailyLogs.filter(l => l.id !== id);
-            renderDailyLogs();
-            saveData();
-            updateCalculations();
+        function removeDailyExpense(index) {
+            state.dailyExpenses.splice(index, 1);
+            saveToLocalStorage();
+            renderAll();
         }
 
-        // CORE CALCULATIONS AND DASHBOARD REFRESH
-        function updateCalculations() {
-            // Read UI inputs
-            appState.username = document.getElementById('usernameInput').value.trim() || 'Admin';
-            appState.selectedMonth = parseInt(document.getElementById('monthSelect').value);
-            appState.selectedYear = parseInt(document.getElementById('yearSelect').value);
-            appState.savingsPercentage = parseFloat(document.getElementById('savingsRange').value) || 0;
-
-            // Header Greeting
-            document.getElementById('welcomeMessage').textContent = `¡Hola, ${appState.username}!`;
-
-            // Calculations
-            const totalIncome = appState.incomes.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
-            const totalFixedExpenses = appState.expenses.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
-            const netIncome = Math.max(0, totalIncome - totalFixedExpenses);
-            
-            // Savings based on net income
-            const savingsGoal = netIncome * (appState.savingsPercentage / 100);
-            const dailyVariablePool = Math.max(0, netIncome - savingsGoal);
-
-            const daysInMonth = getDaysInMonth(appState.selectedYear, appState.selectedMonth);
-            const originalDailyLimit = dailyVariablePool / daysInMonth;
-
-            // Daily Logs Sum
-            const totalSpentDaily = appState.dailyLogs.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
-            const currentDay = new Date().getDate();
-            const avgSpentPerDay = totalSpentDaily / Math.max(1, currentDay);
-            const remainingDailyPool = Math.max(0, dailyVariablePool - totalSpentDaily);
-            const remainingDaysInMonth = Math.max(1, daysInMonth - currentDay + 1);
-            const adjustedDailyLimit = remainingDailyPool / remainingDaysInMonth;
-
-            // Update KPIs with Privacy Check
-            document.getElementById('kpiDailyLimit').textContent = `$${formatMoney(originalDailyLimit)}`;
-            document.getElementById('kpiDaysInMonth').textContent = `${daysInMonth} días`;
-            
-            // Toggleable KPIs
-            document.getElementById('kpiTotalSavings').textContent = appState.privacy.savings ? `$${formatMoney(savingsGoal)}` : '*****';
-            updateEyeIcon('eye-savings', appState.privacy.savings);
-
-            document.getElementById('kpiTotalIncome').textContent = appState.privacy.income ? `$${formatMoney(totalIncome)}` : '*****';
-            updateEyeIcon('eye-income', appState.privacy.income);
-
-            document.getElementById('kpiTotalFixedExpenses').textContent = appState.privacy.expenses ? `$${formatMoney(totalFixedExpenses)}` : '*****';
-            updateEyeIcon('eye-expenses', appState.privacy.expenses);
-
-            document.getElementById('kpiSavingsPercentage').textContent = `${appState.savingsPercentage}%`;
-
-            // Tab Config Totals
-            document.getElementById('configTotalIncome').textContent = `$${formatMoney(totalIncome)}`;
-            document.getElementById('configTotalExpense').textContent = `$${formatMoney(totalFixedExpenses)}`;
-
-            // Dashboard Details
-            document.getElementById('dashNetIncome').textContent = `$${formatMoney(netIncome)}`;
-            document.getElementById('dashTotalDailyPool').textContent = `$${formatMoney(dailyVariablePool)}`;
-            document.getElementById('dashSpentDaily').textContent = `$${formatMoney(totalSpentDaily)}`;
-
-            // Side Card Status
-            document.getElementById('sideOriginalDaily').textContent = `$${formatMoney(originalDailyLimit)}`;
-            document.getElementById('sideAvgDailySpent').textContent = `$${formatMoney(avgSpentPerDay)}`;
-            document.getElementById('sideAdjustedDaily').textContent = `$${formatMoney(adjustedDailyLimit)}`;
-
-            // Progress Bar Percentages
-            if (totalIncome > 0) {
-                const pExpense = Math.min(100, (totalFixedExpenses / totalIncome) * 100);
-                const pSavings = Math.min(100 - pExpense, (savingsGoal / totalIncome) * 100);
-                const pDaily = Math.max(0, 100 - pExpense - pSavings);
-
-                document.getElementById('barExpenses').style.width = `${pExpense}%`;
-                document.getElementById('barSavings').style.width = `${pSavings}%`;
-                document.getElementById('barDaily').style.width = `${pDaily}%`;
-                document.getElementById('incomePercentageLabel').textContent = `${Math.round(pExpense + pSavings + pDaily)}% asignado`;
-            } else {
-                document.getElementById('barExpenses').style.width = '0%';
-                document.getElementById('barSavings').style.width = '0%';
-                document.getElementById('barDaily').style.width = '0%';
-                document.getElementById('incomePercentageLabel').textContent = 'Sin ingresos';
-            }
-
-            // Financial Status Alert Logic
-            const statusBox = document.getElementById('statusAlertBox');
-            const statusText = document.getElementById('statusAlertText');
-
-            if (totalIncome <= 0) {
-                statusBox.className = "mt-4 p-4 rounded-xl bg-slate-100 dark:bg-slate-700/50 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-xs space-y-1";
-                statusText.textContent = "Ingresa tus valores de ingresos en la pestaña de configuración para iniciar.";
-            } else if (totalFixedExpenses >= totalIncome) {
-                statusBox.className = "mt-4 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-xs space-y-1";
-                statusText.textContent = "¡Alerta! Tus gastos fijos superan o igualan tus ingresos totales. No queda saldo para ahorro ni diario.";
-            } else if (adjustedDailyLimit < originalDailyLimit * 0.7) {
-                statusBox.className = "mt-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs space-y-1";
-                statusText.textContent = "Atención: Tu promedio de gasto diario ha sido elevado. Tu límite diario disponible restante se ajustó a la baja.";
-            } else {
-                statusBox.className = "mt-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs space-y-1";
-                statusText.textContent = "Tus finanzas proyectan una capacidad sostenida de gasto sin comprometer la meta de ahorro.";
-            }
-
-            // Update Chart
-            updateChart(totalFixedExpenses, savingsGoal, dailyVariablePool);
-        }
-
-        function updateEyeIcon(iconId, isVisible) {
-            const iconElem = document.getElementById(iconId);
-            if (iconElem) {
-                iconElem.setAttribute('data-lucide', isVisible ? 'eye' : 'eye-off');
-                lucide.createIcons();
-            }
-        }
-
-        // Chart.js Visualization
-        function updateChart(expenses, savings, daily) {
+        // Gráfico con Chart.js
+        function updateChart() {
             const ctx = document.getElementById('budgetChart').getContext('2d');
             
+            const totalIncome = state.incomes.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+            const totalFixedExp = state.fixedExpenses.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+            const netDiff = totalIncome - totalFixedExp;
+            const savingsAmount = netDiff > 0 ? netDiff * (state.savingsPct / 100) : 0;
+            const availableForSpending = Math.max(netDiff - savingsAmount, 0);
+
+            const currentMonthPrefix = state.date;
+            const monthDailyExpenses = state.dailyExpenses.filter(item => item.date.startsWith(currentMonthPrefix));
+            const totalSpentThisMonth = monthDailyExpenses.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+            const remainingBudget = Math.max(availableForSpending - totalSpentThisMonth, 0);
+
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#94a3b8' : '#64748b';
+
             if (budgetChartInstance) {
                 budgetChartInstance.destroy();
             }
 
-            const isDark = appState.darkMode;
-
             budgetChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Gastos Fijos', 'Ahorro Objetivo', 'Fondo Diario'],
+                    labels: ['Gastos Fijos', 'Ahorro', 'Gastos Diarios', 'Disponible Restante'],
                     datasets: [{
-                        data: [expenses, savings, daily],
-                        backgroundColor: ['#f43f5e', '#3b82f6', '#10b981'],
-                        borderWidth: 2,
-                        borderColor: isDark ? '#1e293b' : '#ffffff'
+                        data: [totalFixedExp, savingsAmount, totalSpentThisMonth, remainingBudget],
+                        backgroundColor: [
+                            '#f43f5e', // Rose
+                            '#3b82f6', // Blue
+                            '#f59e0b', // Amber
+                            '#22c55e'  // Green
+                        ],
+                        borderWidth: 0
                     }]
                 },
                 options: {
@@ -863,115 +743,54 @@
                         legend: {
                             position: 'bottom',
                             labels: {
-                                color: isDark ? '#cbd5e1' : '#334155',
-                                font: { family: 'Inter', size: 12 },
-                                usePointStyle: true
+                                color: textColor,
+                                font: {
+                                    size: 11
+                                }
                             }
                         }
-                    },
-                    cutout: '70%'
+                    }
                 }
             });
         }
 
-        // LOCAL STORAGE
-        function saveData() {
-            try {
-                localStorage.setItem('diariowallet_data', JSON.stringify(appState));
-            } catch (e) {
-                console.error('Error guardando en localStorage:', e);
-            }
-        }
-
-        function loadLocalStorage() {
-            try {
-                const data = localStorage.getItem('diariowallet_data');
-                if (data) {
-                    const parsed = JSON.parse(data);
-                    appState = { ...appState, ...parsed };
-                    if (!appState.username) appState.username = "Admin";
-                }
-            } catch (e) {
-                console.error('Error cargando localStorage:', e);
-            }
-        }
-
-        // IMPORT / EXPORT JSON (Format: AAAAMMM + Usuario.json)
+        // Exportar e Importar JSON
         function exportJSON() {
-            const m = String(appState.selectedMonth + 1).padStart(2, '0');
-            const y = appState.selectedYear;
-            const userName = (appState.username || 'Admin').replace(/\s+/g, '');
-            const fileName = `${y}${m}_${userName}.json`;
-
-            const jsonStr = JSON.stringify(appState, null, 2);
-            const blob = new Blob([jsonStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            
+            // Nomenclatura AAAAMMM + Usuario .json (Ejemplo: 202611_Admin.json)
+            const cleanDate = state.date.replace(/-/g, '');
+            const cleanUser = state.user.replace(/[^a-zA-Z0-9]/g, '_');
+            downloadAnchor.setAttribute("download", `${cleanDate}_${cleanUser}.json`);
+            
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
         }
 
         function importJSON(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    
-                    if (typeof importedData === 'object' && Array.isArray(importedData.incomes) && Array.isArray(importedData.expenses)) {
-                        appState = { ...appState, ...importedData };
-                        if (!appState.username) appState.username = "Admin";
-                        saveData();
-                        applyDarkModeUI();
-                        setupInitialInputs();
-                        updateCalculations();
-                        showModal('Éxito', 'Los datos del presupuesto se importaron correctamente.');
-                    } else {
-                        showModal('Error de Formato', 'El archivo JSON no coincide con la estructura requerida.');
+            const fileReader = new FileReader();
+            if(event.target.files[0]) {
+                fileReader.readAsText(event.target.files[0], "UTF-8");
+                fileReader.onload = (e) => {
+                    try {
+                        const parsed = JSON.parse(e.target.result);
+                        if(parsed && parsed.incomes && parsed.fixedExpenses) {
+                            state = parsed;
+                            if(!state.currency) state.currency = "S/";
+                            saveToLocalStorage();
+                            renderAll();
+                            alert("¡Datos importados exitosamente!");
+                        } else {
+                            alert("El archivo JSON no tiene la estructura válida.");
+                        }
+                    } catch(err) {
+                        alert("Error al leer el archivo JSON.");
                     }
-                } catch (err) {
-                    showModal('Error al Importar', 'No se pudo leer el archivo seleccionado. Asegúrate de que es un JSON válido.');
-                }
-            };
-            reader.readAsText(file);
-            event.target.value = '';
-        }
-
-        // Formatting Helpers (Dot (.) as decimal separator)
-        function formatMoney(amount) {
-            const num = (parseFloat(amount) || 0).toFixed(2);
-            const parts = num.split('.');
-            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-            return `${parts[0]}.${parts[1]}`;
-        }
-
-        function escapeHtml(str) {
-            return String(str).replace(/[&<>"']/g, function(m) {
-                return {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#039;'
-                }[m];
-            });
-        }
-
-        function showModal(title, msg) {
-            document.getElementById('modalTitle').textContent = title;
-            document.getElementById('modalMessage').textContent = msg;
-            document.getElementById('notificationModal').classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('notificationModal').classList.add('hidden');
+                };
+            }
         }
     </script>
 </body>
