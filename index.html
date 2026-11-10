@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Presupuesto Diario</title>
+    
+    <!-- Icono de la Aplicación (Favicon SVG) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 12V7H5a2 2 0 0 1 0-4h14v4'/><path d='M3 5v14a2 2 0 0 0 2 2h16v-5'/><path d='M18 12a2 2 0 0 0 0 4h4v-4z'/></svg>">
+
+    <!-- Color de la Barra del Navegador Móvil (theme-color) -->
+    <meta id="theme-color-meta" name="theme-color" content="#020617">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -344,7 +351,7 @@
 
     <!-- Lógica de la Aplicación -->
     <script>
-        // Estado Global de la Aplicación
+        // Estrutura del Estado JSON (Estable e Inmutable)
         let state = {
             user: "Admin",
             date: new Date().toISOString().slice(0, 7), // YYYY-MM
@@ -363,9 +370,9 @@
             ],
             dailyExpenses: [],
             privacyMode: {
-                savings: false,
-                income: false,
-                expenses: false
+                savings: true,
+                income: true,
+                expenses: true
             }
         };
 
@@ -378,7 +385,6 @@
             renderAll();
             lucide.createIcons();
 
-            // Set default date for daily expense form to today
             const todayStr = new Date().toISOString().slice(0, 10);
             const dailyDateInput = document.getElementById('daily-date');
             if(dailyDateInput && !dailyDateInput.value) {
@@ -405,31 +411,38 @@
             lucide.createIcons();
         }
 
-        // Modo Oscuro
+        // Modo Oscuro y Modificación de theme-color de la Barra del Navegador
         function initTheme() {
+            const themeMeta = document.getElementById('theme-color-meta');
             if (localStorage.getItem('theme') === 'light') {
                 document.documentElement.classList.remove('dark');
                 document.getElementById('theme-icon').setAttribute('data-lucide', 'moon');
+                if (themeMeta) themeMeta.setAttribute('content', '#f8fafc'); // bg-slate-50
             } else {
                 document.documentElement.classList.add('dark');
                 document.getElementById('theme-icon').setAttribute('data-lucide', 'sun');
+                if (themeMeta) themeMeta.setAttribute('content', '#020617'); // bg-slate-950
             }
         }
 
         function toggleDarkMode() {
+            const themeMeta = document.getElementById('theme-color-meta');
             if (document.documentElement.classList.contains('dark')) {
                 document.documentElement.classList.remove('dark');
                 localStorage.setItem('theme', 'light');
                 document.getElementById('theme-icon').setAttribute('data-lucide', 'moon');
+                if (themeMeta) themeMeta.setAttribute('content', '#f8fafc');
             } else {
                 document.documentElement.classList.add('dark');
                 localStorage.setItem('theme', 'dark');
                 document.getElementById('theme-icon').setAttribute('data-lucide', 'sun');
+                if (themeMeta) themeMeta.setAttribute('content', '#020617');
             }
             lucide.createIcons();
+            updateChart();
         }
 
-        // Toggle Privacidad (Ocultar/Mostrar Cifras)
+        // Toggle Privacidad
         function togglePrivacy(key) {
             state.privacyMode[key] = !state.privacyMode[key];
             const iconElem = document.getElementById(`icon-privacy-${key}`);
@@ -475,7 +488,6 @@
 
         // Renderizado general
         function renderAll() {
-            // Sincronizar inputs de config
             document.getElementById('cfg-user').value = state.user;
             document.getElementById('cfg-date').value = state.date;
             document.getElementById('cfg-currency').value = state.currency;
@@ -574,7 +586,7 @@
             renderAll();
         }
 
-        // Cálculos Financieros & Dashboard
+        // Cálculos Financieros
         function getDaysInMonth(yearMonthStr) {
             if(!yearMonthStr) return 30;
             const [year, month] = yearMonthStr.split('-').map(Number);
@@ -596,12 +608,10 @@
             const daysInMonth = getDaysInMonth(state.date);
             const origDailyLimit = daysInMonth > 0 ? (availableForSpending / daysInMonth) : 0;
 
-            // Filtrar gastos diarios del mes seleccionado
-            const currentMonthPrefix = state.date; // YYYY-MM
+            const currentMonthPrefix = state.date;
             const monthDailyExpenses = state.dailyExpenses.filter(item => item.date.startsWith(currentMonthPrefix));
             const totalSpentThisMonth = monthDailyExpenses.reduce((acc, curr) => acc + (curr.amount || 0), 0);
 
-            // Calcular días transcurridos y restantes
             const now = new Date();
             const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             
@@ -609,21 +619,18 @@
             if(state.date === currentYearMonth) {
                 daysPassed = now.getDate();
             } else if(state.date < currentYearMonth) {
-                daysPassed = daysInMonth; // Mes pasado completo
+                daysPassed = daysInMonth;
             } else {
-                daysPassed = 0; // Mes futuro
+                daysPassed = 0;
             }
             if(daysPassed < 1) daysPassed = 1;
 
             const daysRemaining = Math.max(daysInMonth - daysPassed + 1, 1);
 
             const avgSpentPerDay = daysPassed > 0 ? (totalSpentThisMonth / daysPassed) : 0;
-            
-            // Restante Real por Día = (Disponible Total - Gastos Acumulados) / Días Restantes
             const remainingPool = availableForSpending - totalSpentThisMonth;
             const realDailyLimit = daysRemaining > 0 ? (remainingPool / daysRemaining) : origDailyLimit;
 
-            // Actualizar etiquetas en UI con Privacidad
             document.getElementById('dash-days-left').innerText = `${daysRemaining} días restantes`;
             document.getElementById('dash-daily-limit').innerText = formatMoney(realDailyLimit > 0 ? realDailyLimit : 0);
 
@@ -656,7 +663,6 @@
                 amount
             });
 
-            // Ordenar por fecha descendente
             state.dailyExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             document.getElementById('daily-desc').value = '';
@@ -728,10 +734,10 @@
                     datasets: [{
                         data: [totalFixedExp, savingsAmount, totalSpentThisMonth, remainingBudget],
                         backgroundColor: [
-                            '#f43f5e', // Rose
-                            '#3b82f6', // Blue
-                            '#f59e0b', // Amber
-                            '#22c55e'  // Green
+                            '#f43f5e',
+                            '#3b82f6',
+                            '#f59e0b',
+                            '#22c55e'
                         ],
                         borderWidth: 0
                     }]
@@ -754,13 +760,12 @@
             });
         }
 
-        // Exportar e Importar JSON
+        // Exportar e Importar JSON (Estructura de Datos Garantizada)
         function exportJSON() {
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
             
-            // Nomenclatura AAAAMMM + Usuario .json (Ejemplo: 202611_Admin.json)
             const cleanDate = state.date.replace(/-/g, '');
             const cleanUser = state.user.replace(/[^a-zA-Z0-9]/g, '_');
             downloadAnchor.setAttribute("download", `${cleanDate}_${cleanUser}.json`);
@@ -778,8 +783,16 @@
                     try {
                         const parsed = JSON.parse(e.target.result);
                         if(parsed && parsed.incomes && parsed.fixedExpenses) {
-                            state = parsed;
-                            if(!state.currency) state.currency = "S/";
+                            state = {
+                                user: parsed.user || "Admin",
+                                date: parsed.date || new Date().toISOString().slice(0, 7),
+                                currency: parsed.currency || "S/",
+                                savingsPct: typeof parsed.savingsPct === 'number' ? parsed.savingsPct : 15,
+                                incomes: Array.isArray(parsed.incomes) ? parsed.incomes : [],
+                                fixedExpenses: Array.isArray(parsed.fixedExpenses) ? parsed.fixedExpenses : [],
+                                dailyExpenses: Array.isArray(parsed.dailyExpenses) ? parsed.dailyExpenses : [],
+                                privacyMode: parsed.privacyMode || { savings: false, income: false, expenses: false }
+                            };
                             saveToLocalStorage();
                             renderAll();
                             alert("¡Datos importados exitosamente!");
